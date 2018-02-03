@@ -13,8 +13,17 @@ package main
 // Bb = 10
 // B  = 11
 
+// C4 = 60
+// C3 = 48
+// C2 = 36
+// C1 = 24
+// C0 = 12
+
 // NoteNumber is a Midi Note Number
 type NoteNumber = uint8
+
+// NoteGroup is a slice of NoteNumbers
+type NoteGroup []NoteNumber
 
 const lowestNote = 0
 const highestNote = 127
@@ -89,29 +98,14 @@ var pitchesFlats = [...]string{"C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", 
 var pitchesSharps = [...]string{"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#"}
 var pitchesMap = map[string]int{
 	"C":  C,
-	"C#": Cs, "Db": Db,
+	"C#": Cs, "Cs": Cs, "Db": Db, "Df": Db,
 	"D":  D,
-	"D#": Ds, "Eb": Eb,
+	"D#": Ds, "Ds": Ds, "Eb": Eb, "Ef": Ef,
 	"E":  E,
 	"F":  F,
-	"F#": Fs, "Gb": Gb,
+	"F#": Fs, "Fs": Fs, "Gb": Gb, "Gf": Gf,
 	"G":  G,
-	"G#": Gs, "Ab": Ab,
+	"G#": Gs, "Gs": Gs, "Ab": Ab, "Af": Af,
 	"A":  A,
-	"A#": As, "Bb": Bb,
+	"A#": As, "As": As, "Bb": Bb, "Bf": Bf,
 	"B": B}
-
-// AllNotes returns a slice with every note in notes
-func AllNotes(notes ...NoteNumber) []NoteNumber {
-	result := make([]NoteNumber, 0, 127)
-	var i NoteNumber
-	for i = lowestNote; i <= highestNote; i++ {
-		for _, n := range notes {
-			if i%12 == n {
-				result = append(result, i)
-				break
-			}
-		}
-	}
-	return result
-}

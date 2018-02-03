@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -19,11 +18,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	notes := AllNotes(C, Eb, G)
-	fmt.Println(notes)
-	for _, note := range notes[4:] {
+	cMajor := MajorTriad(Ab).AllOctaves()[4:]
+	cMinor := MinorTriad(C).AllOctaves()[10:]
+
+	for _, note := range cMinor.Interleave(cMajor) {
 		out.WriteShort(gm.Note{On: true, Note: note, Vel: 127}.Midi())
 		time.Sleep(time.Millisecond * 40)
 		out.WriteShort(gm.Note{Note: note, Vel: 127}.Midi())
 	}
+
 }
