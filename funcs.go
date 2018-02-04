@@ -89,11 +89,22 @@ func (notes NoteGroup) Interleave(others ...NoteGroup) (result NoteGroup) {
 	return result
 }
 
-// Over removes all notes blow root. It does not remove root.
+// Over removes all notes below root. It does not remove root.
 func (notes NoteGroup) Over(root NoteNumber) (result NoteGroup) {
 	result = make(NoteGroup, 0, len(notes))
 	for _, note := range notes {
 		if note >= root {
+			result = append(result, note)
+		}
+	}
+	return result
+}
+
+// Under removes all notes above topNote. It does not remove topNote.
+func (notes NoteGroup) Under(topNote NoteNumber) (result NoteGroup) {
+	result = make(NoteGroup, 0, len(notes))
+	for _, note := range notes {
+		if note <= topNote {
 			result = append(result, note)
 		}
 	}
@@ -106,7 +117,7 @@ func (notes NoteGroup) Over(root NoteNumber) (result NoteGroup) {
 func (notes NoteGroup) Subgroup(index int, size int) (result NoteGroup) {
 	if index >= 0 {
 		end := index + size
-		if end+index > len(notes) { // make sure we don't go over
+		if end > len(notes) { // make sure we don't go over
 			end = len(notes)
 		}
 		return notes[index:end]
@@ -132,13 +143,15 @@ func (notes NoteGroup) Subgroup(index int, size int) (result NoteGroup) {
 	return notes[start:end]
 }
 
+// AllSubgroups return every subgroup with the specified size. For example:
+//[1, 2, 3, 4].AllSubGroups(2) == [[1,2],[2,3],[3,4]]
 func (notes NoteGroup) AllSubgroups(size int) []NoteGroup {
 	if size < 0 {
 		panic("AllSubgroups size must be greater than 0")
 	}
 	count := len(notes) - size + 1
 	if count < 1 {
-		return []NoteGroup{notes}
+		return []NoteGroup{Group()}
 	}
 	result := make([]NoteGroup, count)
 	for i := range result {
