@@ -18,8 +18,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	cMajor := MajorTriad(Ab).AllOctaves()[4:]
-	cMinor := MinorTriad(C).AllOctaves()[10:]
+	cMajor := MajorTriad(Ab).AllOctaves().Over(C4)
+	cMinor := MinorTriad(C).AllOctaves().Over(C5)
 
 	for _, note := range cMinor.Interleave(cMajor) {
 		out.WriteShort(gm.Note{On: true, Note: note, Vel: 127}.Midi())

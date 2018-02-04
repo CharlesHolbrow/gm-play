@@ -7,16 +7,15 @@ func Group(notes ...NoteNumber) NoteGroup {
 
 // MinorTriad creates a minor triad based on root
 func MinorTriad(root NoteNumber) NoteGroup {
-	third := (root + 3) % 12
-	fifth := (root + 7) % 12
+	third := root + 3
+	fifth := root + 7
 	return Group(root, third, fifth)
 }
 
-// MajorTriad creates a minor triad based on root, and repeats that
-// triad in every octave.
+// MajorTriad creates a minor triad based on root.
 func MajorTriad(root NoteNumber) NoteGroup {
-	third := (root + 4) % 12
-	fifth := (root + 7) % 12
+	third := root + 4
+	fifth := root + 7
 	return Group(root, third, fifth)
 }
 
@@ -87,5 +86,78 @@ func (notes NoteGroup) Interleave(others ...NoteGroup) (result NoteGroup) {
 		}
 	}
 
+	return result
+}
+
+// Over removes all notes blow root. It does not remove root.
+func (notes NoteGroup) Over(root NoteNumber) (result NoteGroup) {
+	result = make(NoteGroup, 0, len(notes))
+	for _, note := range notes {
+		if note >= root {
+			result = append(result, note)
+		}
+	}
+	return result
+}
+
+// Subgroup reslices a note group given a size and starting index. Negative
+// indices may be used to take a subgroup from the end of the slice.
+// For example index=-1, size=3 give the last three elements from the group.
+func (notes NoteGroup) Subgroup(index int, size int) (result NoteGroup) {
+	if index >= 0 {
+		end := index + size
+		if end+index > len(notes) { // make sure we don't go over
+			end = len(notes)
+		}
+		return notes[index:end]
+	}
+
+	// We have a negative index
+	if size >= len(notes) {
+		return notes
+	}
+
+	start := len(notes) - size + index + 1
+	end := start + size
+	if start < 0 {
+		start = 0
+	}
+	if end > len(notes) {
+		end = len(notes)
+	}
+	if end < 0 {
+		end = 0
+	}
+
+	return notes[start:end]
+}
+
+func (notes NoteGroup) AllSubgroups(size int) []NoteGroup {
+	if size < 0 {
+		panic("AllSubgroups size must be greater than 0")
+	}
+	count := len(notes) - size + 1
+	if count < 1 {
+		return []NoteGroup{notes}
+	}
+	result := make([]NoteGroup, count)
+	for i := range result {
+		result[i] = notes.Subgroup(i, size)
+	}
+	return result
+}
+
+// Append joins together multple NoteGroups. It is similar to NoteGroup.Append
+func Append(appendages ...NoteGroup) (result NoteGroup) {
+	size := 0
+	for _, group := range appendages {
+		size += len(group)
+	}
+
+	result = make(NoteGroup, 0, size)
+
+	for _, group := range appendages {
+		result = append(result, group...)
+	}
 	return result
 }
