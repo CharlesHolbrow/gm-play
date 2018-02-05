@@ -20,30 +20,26 @@ func main() {
 		log.Fatal(err)
 	}
 
-	afMajor := m.MajorTriad(m.Ab).AllOctaves().Over(m.C3).AllSubgroups(8)[:6]
-	// cMinor := m.MinorTriad(m.C).AllOctaves().Over(m.C2).Under(m.C6)
-	final := m.Append(afMajor...)
+	cMinor := m.Append(m.MinorTriad(m.C).AllOctaves().Over(m.C2).AllSubgroups(7)[:12]...)
+	cMinor = cMinor.Append(cMinor.Reverse())
+	fMinor := cMinor.Transpose(5)
+	bFlatMinor := fMinor.Transpose(-7)
+	// afMajor := m.Append(m.MajorTriad(m.Ab).AllOctaves().Over(m.C3).AllSubgroups(7)[:12]...)
+	// final := afMajor.Interleave(cMinor)
+	final := cMinor.Append(fMinor, bFlatMinor).Repeat(10)
 	fmt.Println(len(final))
 
 	s := &Sequence{}
-	s.Add(2, "Five")
-	s.Add(0, "One")
-	s.Add(1./3., "Two")
-	s.Add(1./3., "Three")
-	s.Add(1./3., "Four")
 
-	fmt.Println(s.Sorted(time.Second))
-
-	var v uint8 = 124
-	for _, note := range final {
-		fmt.Println(v)
-		out.WriteShort(gm.Note{On: true, Note: note, Vel: v}.Midi())
-		time.Sleep(time.Millisecond * 40)
-		out.WriteShort(gm.Note{Note: note, Vel: 0}.Midi())
-		v = (v - 2)
-		if v == 0 {
-			break
-		}
+	for i, number := range final {
+		s.Add(float64(i)*20, gm.Note{On: true, Note: number, Vel: 120})
+		s.Add(float64(i)*20+32, gm.Note{Note: number})
 	}
 
+	for event := range s.Play(time.Millisecond) {
+		switch e := event.(type) {
+		case gm.Note:
+			out.WriteShort(e.Midi())
+		}
+	}
 }

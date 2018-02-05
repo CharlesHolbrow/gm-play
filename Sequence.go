@@ -73,6 +73,21 @@ func (s *Sequence) Sorted(unit time.Duration) []TimeEvent {
 	return result
 }
 
+// Play back the sequence on the supplied channel. If out is nil, create a
+// channel. returns the playback channel.
+func (s *Sequence) Play(unit time.Duration) chan interface{} {
+	start := time.Now()
+	out := make(chan interface{})
+	go func() {
+		for _, tEvent := range s.Sorted(unit) {
+			time.Sleep(time.Until(start.Add(tEvent.Time)))
+			out <- tEvent.Event
+		}
+		close(out)
+	}()
+	return out
+}
+
 // sort.Interface methods
 func (s *Sequence) Len() int      { return len(s.list) }
 func (s *Sequence) Swap(i, j int) { s.list[i], s.list[j] = s.list[j], s.list[i] }
