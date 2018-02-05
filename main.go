@@ -26,14 +26,14 @@ func main() {
 	bFlatMinor := fMinor.Transpose(-7)
 	// afMajor := m.Append(m.MajorTriad(m.Ab).AllOctaves().Over(m.C3).AllSubgroups(7)[:12]...)
 	// final := afMajor.Interleave(cMinor)
-	final := cMinor.Append(fMinor, bFlatMinor).Repeat(10)
+	final := cMinor.Append(fMinor, bFlatMinor).Repeat(1)
 	fmt.Println(len(final))
 
 	s := NewSequence()
 
 	for i, number := range final {
-		s.Add(float64(i)*20, gm.Note{On: true, Note: number, Vel: 120})
-		s.Add(float64(i)*20+32, gm.Note{Note: number})
+		s.Add(float64(i*30), gm.Note{On: true, Note: number, Vel: 120})
+		s.Add(float64(i*30+20), gm.Note{Note: number})
 	}
 
 	for event := range s.Play(time.Millisecond) {
@@ -42,4 +42,5 @@ func main() {
 			out.WriteShort(e.Midi())
 		}
 	}
+	time.Sleep(10 * time.Millisecond)
 }
