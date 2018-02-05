@@ -29,7 +29,7 @@ func main() {
 	final := cMinor.Append(fMinor, bFlatMinor).Repeat(10)
 	fmt.Println(len(final))
 
-	s := &Sequence{}
+	s := NewSequence()
 
 	for i, number := range final {
 		s.Add(float64(i)*20, gm.Note{On: true, Note: number, Vel: 120})
