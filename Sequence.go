@@ -15,8 +15,6 @@ type SequenceEvent struct {
 	position    float64       // dimensionless floating point value
 	Time        time.Duration // Duration from seq start to event time
 	Event       Event
-	On          *SequenceEvent // If this is an on event point to the stop event
-	Off         *SequenceEvent // If this is an off event point to the start event
 }
 
 // Sequence is an ordered collection of Events.
@@ -58,42 +56,6 @@ func (s *Sequence) Add(position float64, event Event) {
 
 	s.content[position] = append(events, timeEvent)
 	s.list = append(s.list, timeEvent)
-}
-
-func (s *Sequence) AddOnOff(position float64, start Event, duration float64, end Event) {
-	endPosition := position + duration
-
-	if endPosition == position {
-		panic("Cannot add OnOff Event with zero length")
-	}
-
-	startEvents, ok := s.content[position]
-	if !ok {
-		startEvents = make([]SequenceEvent, 0, 10)
-		s.content[position] = startEvents
-	}
-
-	endEvents, ok := s.content[endPosition]
-	if !ok {
-		endEvents = make([]SequenceEvent, 0, 10)
-		s.content[position] = endEvents
-	}
-
-	startTimeEvent := SequenceEvent{
-		Event:       start,
-		position:    position,
-		subPosition: len(startEvents),
-	}
-	endTimeEvent := SequenceEvent{
-		Event:       end,
-		position:    endPosition,
-		subPosition: len(endEvents),
-		On:          &startTimeEvent,
-	}
-	startTimeEvent.Off = &endTimeEvent
-	s.content[position] = append(startEvents, startTimeEvent)
-	s.content[endPosition] = append(endEvents, endTimeEvent)
-	s.list = append(s.list, startTimeEvent, endTimeEvent)
 }
 
 // Sorted creates a slice of TimeEvents. The .Time property of each event will
