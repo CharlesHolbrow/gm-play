@@ -24,14 +24,36 @@ type Sequence struct {
 
 	// list is where the actual sorting happens
 	list []SequenceEvent
+
+	// How long is the sequence. Note: there may be events after the end of the
+	// sequence (However, this should probably be avoided)
+	length float64
+
+	// Is sequence.list known to be in playback order?
+	sorted bool
 }
 
 // NewSequence creates and initializes a new Sequence
-func NewSequence() *Sequence {
+func NewSequence(length float64) *Sequence {
 	return &Sequence{
 		list:    make([]SequenceEvent, 0),
 		content: make(map[float64][]SequenceEvent),
+		length:  length,
 	}
+}
+
+// Get an event with Looping. If the are events after the end of the sequence,
+// The order of events returned by Get may not follow the playback order. To get
+// the playback order, use EventList method.
+func (s *Sequence) Get(i int) SequenceEvent {
+	if !s.sorted {
+		s.sort()
+	}
+
+	repetition := i / len(s.list)
+	event := s.list[i%len(s.list)]
+	event.position = event.position + float64(repetition)*s.length
+	return event
 }
 
 // Add an event to the sequence. Position is a dimensionless point to place the
@@ -41,6 +63,8 @@ func (s *Sequence) Add(position float64, event Event) {
 		fmt.Printf("Bad event position: %f (%v)\n", position, event)
 		panic("Cannot add event to with negative position")
 	}
+
+	s.sorted = false
 
 	events, ok := s.content[position]
 	if !ok {
@@ -58,11 +82,11 @@ func (s *Sequence) Add(position float64, event Event) {
 	s.list = append(s.list, timeEvent)
 }
 
-// Sorted creates a slice of TimeEvents. The .Time property of each event will
+// EventList creates a slice of TimeEvents. The .Time property of each event will
 // be populated. To Add an event, you had to specify a dimensionless time
 // position. Set that dimension now with the `unit` argument.
-func (s *Sequence) Sorted(unit time.Duration) []SequenceEvent {
-	sort.Sort(s)
+func (s *Sequence) EventList(unit time.Duration) []SequenceEvent {
+	s.sort()
 	result := make([]SequenceEvent, len(s.list))
 	for i, tEvent := range s.list {
 		tEvent.Time = time.Duration(tEvent.position * float64(unit))
@@ -77,13 +101,22 @@ func (s *Sequence) Play(unit time.Duration) chan interface{} {
 	start := time.Now()
 	out := make(chan interface{})
 	go func() {
-		for _, tEvent := range s.Sorted(unit) {
+		for _, tEvent := range s.EventList(unit) {
 			time.Sleep(time.Until(start.Add(tEvent.Time)))
 			out <- tEvent.Event
 		}
 		close(out)
 	}()
 	return out
+}
+
+// sort the underlying list
+func (s *Sequence) sort() {
+	if s.sorted {
+		return
+	}
+	sort.Sort(s)
+	s.sorted = true
 }
 
 // sort.Interface methods
