@@ -42,35 +42,44 @@ func main() {
 		os.Exit(0)
 	}()
 
+	root := m.NoteNumber(m.B3)
+	subdivisions := 4 // Divide each beat into n parts
+	repetitions := 8  // repeat
+
 	// Chip Melody
-	cMinorSubgroups := m.MinorTriad(m.G).AllOctaves().Over(m.G4).AllSubgroups(7)
-	cMinor := m.Append(cMinorSubgroups[:4]...)
-	chipMelody := cMinor.Append(cMinor.Transpose(6), cMinor.Transpose(7), cMinor.Transpose(-5))
+	cMinorSubgroups := m.MinorTriad(root).AllOctaves().Over(root + 12).AllSubgroups(subdivisions)
+	chipMelody := m.Append(cMinorSubgroups[:repetitions]...)
 
 	// Chip Pattern
 	chipPattern := m.NewSequence()
-	chipPattern.AddSubdivisions(14, 1, 1.)
+	chipPattern.AddSubdivisions(subdivisions*repetitions, 1, .8)
 	chipPattern.Cursor = 1
 	chipPattern.RampSustainVelocity(100, 0)
 
 	// Bass Melody
-	bassMelody := m.Group(m.G3, m.E4, m.C4, m.C4) // Bassline
-	bassMelody = bassMelody.Interleave(bassMelody)
+	bassMelody := m.Group(root, root) // Bassline
 
 	// Bass Pattern
 	bassPattern := m.NewSequence()
-	bassPattern.AddSustain(0, 1.5, 100)
-	bassPattern.AddSustain(1.5, 0.5, 50)
-	bassPattern.Cursor = 2
+	bassPattern.AddSustain(0, 0.75, 100)
+	bassPattern.AddSustain(0.75, .25, 50)
+	bassPattern.Cursor = 1
 
 	s := m.NewSequence()
 	s.AddRhythmicMelody(chipPattern, chipMelody, 0)
 	s.AddRhythmicMelody(bassPattern, bassMelody, 1)
+	s.Cursor = 1
+	s.CopyFrom(s)
+	s.Cursor = 2
+	s.CopyFrom(s)
+	s.Cursor = 3
+	s.CopyFrom(s)
+	s.Cursor = 4
 
 	// pSevenths := m.NewPatternSubdivisions(16, 2)
 	// pSevenths.RampValue(127, 2)
 
-	for event := range s.Play(time.Millisecond * 1050) {
+	for event := range s.Play(time.Millisecond * 2000) {
 		switch e := event.(type) {
 		case gm.Note:
 			// fmt.Println(e.Midi())
