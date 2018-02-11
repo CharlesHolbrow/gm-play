@@ -35,6 +35,14 @@ func rampDown(melody m.NoteGroup) (pattern *m.Sequence) {
 	return
 }
 
+func rampDown75(melody m.NoteGroup) (pattern *m.Sequence) {
+	pattern = m.NewSequence()
+	pattern.AddSubdivisions(len(melody), 0.75, .8)
+	pattern.Cursor = 0.75
+	pattern.RampSustainVelocity(100, 0)
+	return
+}
+
 func ChordProgression(chords []m.NoteGroup, length float64) *m.Sequence {
 	pattern := m.NewSequence()
 	pattern.AddSubdivisions(len(chords), length, 0.8)
